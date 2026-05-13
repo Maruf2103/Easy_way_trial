@@ -10,7 +10,7 @@ class AdminRequiredMiddleware:
         
         if request.path.startswith('/admin/'):
             if not request.user.is_authenticated:
-                return redirect('login')
+                return redirect('login_page')
             
             try:
                 if request.user.userprofile.user_type != 'admin':

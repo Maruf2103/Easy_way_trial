@@ -59,11 +59,11 @@ def homepage(request):
 
 def register_page(request):
     """Render the user registration page template"""
-    return render(request, 'app1/register.html')
+    return render(request, 'app1/Register.html')
 
 def login_page(request):
     """Render the user login page template"""
-    return render(request, 'app1/login.html')
+    return render(request, 'app1/Login.html')
 
 def account_created_page(request):
     """Render the account creation success page template"""
