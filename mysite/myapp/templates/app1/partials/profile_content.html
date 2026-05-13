@@ -1,0 +1,149 @@
+{% load static %}
+<style>
+    .profile-container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 20px; }
+    .page-title { font-size: 28px; font-weight: 700; margin-bottom: 24px; color: #1a1a2e; }
+    .profile-grid { display: grid; grid-template-columns: 1fr 300px; gap: 24px; }
+    .card { background: white; border: 1px solid #e0e0e0; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+    .profile-card { display: flex; align-items: center; gap: 20px; padding: 24px; }
+    .avatar-box { width: 72px; height: 72px; border: 2px solid #e63946; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: 700; background: #f8f9fa; border-radius: 12px; color: #1a1a2e; }
+    .profile-info { flex: 1; }
+    .profile-name { font-size: 20px; font-weight: 600; color: #1a1a2e; margin-bottom: 4px; }
+    .profile-email { font-size: 14px; color: #6c757d; margin-bottom: 8px; }
+    .badge { display: inline-block; padding: 4px 12px; background: rgba(0, 212, 255, 0.12); border-radius: 20px; font-size: 12px; font-weight: 600; color: #00d4ff; }
+    .btn-edit { padding: 10px 20px; border: 1px solid #e63946; background: transparent; border-radius: 8px; font-weight: 600; font-size: 14px; color: #e63946; cursor: pointer; transition: all 0.2s; }
+    .btn-edit:hover { background: rgba(230, 57, 70, 0.1); }
+    .edit-form { padding: 24px; display: none; }
+    .section-title { font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #1a1a2e; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 13px; font-weight: 600; color: #6c757d; }
+    .form-input { background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; height: 44px; padding: 0 16px; font-size: 14px; outline: none; width: 100%; }
+    .form-input:focus { border-color: #e63946; }
+    .btn-save { height: 44px; padding: 0 24px; background: #e63946; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; color: white; cursor: pointer; margin-right: 12px; }
+    .btn-save:hover { background: #c1121f; }
+    .btn-cancel { height: 44px; padding: 0 24px; background: transparent; border: 1px solid #e0e0e0; border-radius: 8px; font-weight: 600; font-size: 14px; color: #6c757d; cursor: pointer; }
+    .password-card { padding: 24px; }
+    .password-fields { display: flex; flex-direction: column; gap: 16px; max-width: 450px; margin-bottom: 20px; }
+    .btn-update { height: 44px; padding: 0 24px; background: #f8f9fa; border: 1px solid #e0e0e0; border-radius: 8px; font-weight: 600; font-size: 14px; color: #1a1a2e; cursor: pointer; }
+    .transport-info { padding: 20px 24px; display: flex; flex-wrap: wrap; gap: 24px; align-items: center; }
+    .info-item { font-size: 14px; color: #6c757d; }
+    .info-item span { color: #1a1a2e; font-weight: 500; }
+    .badge-active { display: inline-block; padding: 4px 12px; background: rgba(0, 200, 150, 0.12); border-radius: 20px; font-size: 12px; font-weight: 600; color: #00c896; }
+    .pass-card { padding: 24px; border-left: 4px solid #ff6b35; }
+    .pass-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; color: #1a1a2e; }
+    .pass-id { font-size: 12px; color: #6c757d; margin-bottom: 16px; }
+    .pass-rows { margin-bottom: 20px; }
+    .pass-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f0; font-size: 13px; }
+    .pass-row:last-child { border-bottom: none; }
+    .btn-renew { width: 100%; height: 40px; border: 1px solid #ff6b35; background: transparent; border-radius: 8px; font-weight: 600; font-size: 13px; color: #ff6b35; cursor: pointer; }
+    .btn-renew:hover { background: rgba(255, 107, 53, 0.1); }
+    .message-success { background: rgba(0, 200, 150, 0.1); border-left: 4px solid #00c896; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; color: #00c896; }
+    .message-error { background: rgba(255, 71, 87, 0.1); border-left: 4px solid #e63946; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; color: #e63946; }
+    @media (max-width: 900px) { .profile-grid { grid-template-columns: 1fr; } .form-grid { grid-template-columns: 1fr; } }
+</style>
+
+<div class="profile-container">
+    <h1 class="page-title">Profile</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="message-{{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="profile-grid">
+        <div class="left-section">
+            <!-- PROFILE CARD -->
+            <div class="card profile-card" id="profileCard">
+                <div class="avatar-box">{{ user.first_name|first|upper }}{{ user.last_name|first|upper }}</div>
+                <div class="profile-info">
+                    <div class="profile-name">{{ user.get_full_name|default:user.username }}</div>
+                    <div class="profile-email">{{ user.email }}</div>
+                    <span class="badge">{% if profile.user_type %}{{ profile.get_user_type_display }}{% else %}User{% endif %}</span>
+                </div>
+                <button type="button" class="btn-edit" id="editProfileBtn">Edit Profile</button>
+            </div>
+
+            <!-- EDIT FORM -->
+            <div class="card edit-form" id="editFormCard">
+                <div class="section-title">Edit Profile</div>
+                <form method="post" action="{% url 'profile' %}" id="profileForm">
+                    {% csrf_token %}
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">First Name</label>
+                            <input class="form-input" type="text" name="first_name" value="{{ user.first_name }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Last Name</label>
+                            <input class="form-input" type="text" name="last_name" value="{{ user.last_name }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <input class="form-input" type="tel" name="phone" value="{{ profile.phone|default:'' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Department</label>
+                            <input class="form-input" type="text" name="department" value="{{ profile.department|default:'' }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Institution ID</label>
+                            <input class="form-input" type="text" name="institution_id" value="{{ profile.institution_id|default:'' }}">
+                        </div>
+                    </div>
+                    <div>
+                        <button type="submit" class="btn-save">Save Changes</button>
+                        <button type="button" class="btn-cancel" id="cancelEditBtn">Cancel</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- CHANGE PASSWORD -->
+            <div class="card password-card">
+                <div class="section-title">Change Password</div>
+                <form method="post" action="{% url 'change_password' %}" id="passwordForm">
+                    {% csrf_token %}
+                    <div class="password-fields">
+                        <div class="form-group">
+                            <label class="form-label">Current Password</label>
+                            <input class="form-input" type="password" name="current_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">New Password</label>
+                            <input class="form-input" type="password" name="new_password" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Confirm New Password</label>
+                            <input class="form-input" type="password" name="confirm_password" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-update">Update Password</button>
+                </form>
+            </div>
+
+            <!-- TRANSPORT INFO -->
+            <div class="card transport-info">
+                <div class="info-item">Type: <span>Monthly Pass</span></div>
+                <div class="info-item">Valid Until: <span>{{ pass_valid_until }}</span></div>
+                <div class="info-item">Status: <span class="badge-active">{% if is_pass_active %}Active{% else %}Inactive{% endif %}</span></div>
+            </div>
+        </div>
+
+        <!-- PASS CARD -->
+        <div class="right-section">
+            <div class="card pass-card">
+                <div class="pass-title">Transport Pass</div>
+                <div class="pass-id">{{ pass_id }}</div>
+                <div class="pass-rows">
+                    <div class="pass-row"><span>Type</span><span>Monthly Pass</span></div>
+                    <div class="pass-row"><span>Status</span><span class="badge-active">{% if is_pass_active %}Active{% else %}Inactive{% endif %}</span></div>
+                    <div class="pass-row"><span>Valid Until</span><span>{{ pass_valid_until }}</span></div>
+                </div>
+                <form method="post" action="{% url 'renew_pass' %}" id="renewForm">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-renew">Renew Pass</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

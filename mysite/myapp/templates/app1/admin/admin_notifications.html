@@ -1,0 +1,196 @@
+{% extends 'app1/admin/admin_base.html' %}
+{% load static %}
+
+{% block title %}Notifications - Admin{% endblock %}
+{% block page_title %}Notifications{% endblock %}
+{% block page_subtitle %}Manage system notifications and alerts{% endblock %}
+
+{% block content %}
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Total Notifications</div>
+        <div class="stat-value">{{ total_notifications|default:0 }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label" style="color:#ffb800">Unread</div>
+        <div class="stat-value" style="color:#ffb800">{{ unread_count|default:0 }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label" style="color:#ff4757">Emergency Alerts</div>
+        <div class="stat-value" style="color:#ff4757">{{ emergency_count|default:0 }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label" style="color:#00c896">Resolved</div>
+        <div class="stat-value" style="color:#00c896">{{ resolved_count|default:0 }}</div>
+    </div>
+</div>
+
+<!-- Filter Bar -->
+<div class="filter-bar">
+    <span class="filter-label">Filter:</span>
+    <div class="filter-tabs">
+        <a href="?type=all" class="filter-tab {% if filter_type == 'all' %}active{% endif %}">All ({{ total_notifications|default:0 }})</a>
+        <a href="?type=emergency" class="filter-tab {% if filter_type == 'emergency' %}active{% endif %}" style="color:#ff4757;">🆘 Emergency ({{ emergency_count|default:0 }})</a>
+        <a href="?type=booking" class="filter-tab {% if filter_type == 'booking' %}active{% endif %}">🎫 Booking</a>
+        <a href="?type=payment" class="filter-tab {% if filter_type == 'payment' %}active{% endif %}">💳 Payment</a>
+        <a href="?type=driver" class="filter-tab {% if filter_type == 'driver' %}active{% endif %}">🚗 Driver</a>
+        <a href="?type=schedule" class="filter-tab {% if filter_type == 'schedule' %}active{% endif %}">📅 Schedule</a>
+        <a href="?type=system" class="filter-tab {% if filter_type == 'system' %}active{% endif %}">⚙️ System</a>
+    </div>
+    <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search notifications..." value="{{ search_query }}" onkeyup="searchNotifs()">
+    </div>
+</div>
+
+<!-- Notifications List -->
+<div class="notif-list" id="notif-list">
+    {% if notifications %}
+        {% for notif in notifications %}
+        <div class="notif-card {% if not notif.is_read %}unread{% endif %}">
+            <div class="notif-icon 
+                {% if notif.type == 'emergency' %}red
+                {% elif notif.type == 'booking' %}blue
+                {% elif notif.type == 'payment' %}gold
+                {% elif notif.type == 'driver' %}orange
+                {% elif notif.type == 'schedule' %}green
+                {% else %}purple{% endif %}">
+                {% if notif.type == 'emergency' %}🆘
+                {% elif notif.type == 'booking' %}🎫
+                {% elif notif.type == 'payment' %}💳
+                {% elif notif.type == 'driver' %}🚗
+                {% elif notif.type == 'schedule' %}📅
+                {% else %}🔔{% endif %}
+            </div>
+            <div class="notif-body">
+                <div class="notif-header">
+                    <div class="notif-title">{{ notif.title }}</div>
+                    <span class="notif-badge badge-{{ notif.type }}">{{ notif.get_type_display }}</span>
+                </div>
+                <div class="notif-desc">{{ notif.message }}</div>
+                <div class="notif-meta">
+                    <span class="notif-time">🕐 {{ notif.created_at|timesince }} ago</span>
+                    {% if notif.related_user %}
+                    <span class="notif-user">👤 {{ notif.related_user.get_full_name|default:notif.related_user.username }}</span>
+                    {% endif %}
+                </div>
+            </div>
+            {% if not notif.is_read %}
+            <div class="unread-dot"></div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div style="text-align:center;padding:60px 20px;color:var(--text-muted);">
+            <div style="font-size:40px;margin-bottom:12px;">🔔</div>
+            <div style="font-size:15px;font-weight:500;margin-bottom:6px;">No notifications found</div>
+            <div style="font-size:13px;">All caught up! 🎉</div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Recent Activity -->
+<div class="two-col" style="margin-top:24px;">
+    <!-- Recent Bookings -->
+    <div class="card">
+        <div class="card-title"><span class="dot"></span>Recent Bookings</div>
+        {% if recent_bookings %}
+            {% for booking in recent_bookings %}
+            <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+                <div style="font-size:13px;font-weight:500;">{{ booking.passenger_name }} - {{ booking.schedule.route.code }}</div>
+                <div style="font-size:11px;color:var(--text-muted);">{{ booking.booking_date|date:"M d, H:i" }} | 
+                    <span class="badge badge-{% if booking.status == 'approved' %}green{% elif booking.status == 'pending' %}gold{% else %}red{% endif %}">{{ booking.get_status_display }}</span>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--text-muted);text-align:center;padding:20px;">No recent bookings</p>
+        {% endif %}
+    </div>
+    
+    <!-- Active Alerts -->
+    <div class="card">
+        <div class="card-title"><span class="dot"></span>Active Alerts</div>
+        {% if recent_alerts %}
+            {% for alert in recent_alerts %}
+            <div style="padding:8px 0;border-bottom:1px solid var(--border);">
+                <div style="font-size:13px;font-weight:500;">{{ alert.get_alert_type_display }}: {{ alert.message|truncatechars:60 }}</div>
+                <div style="font-size:11px;color:var(--text-muted);">{{ alert.created_at|date:"M d, H:i" }}</div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:var(--text-muted);text-align:center;padding:20px;">🟢 All clear! No active alerts.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Styles -->
+<style>
+.stats-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:18px; margin-bottom:20px; }
+.stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:20px; }
+.stat-label { font-size:13px; color:var(--text-muted); margin-bottom:6px; }
+.stat-value { font-size:28px; font-weight:700; }
+.card { background:var(--bg-card); border:1px solid var(--border); border-radius:16px; padding:20px; overflow:hidden; }
+.card-title { font-size:16px; font-weight:600; margin-bottom:16px; display:flex; align-items:center; gap:8px; }
+.card-title .dot { width:6px; height:6px; border-radius:50%; background:var(--accent-orange); }
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+
+.filter-bar { display:flex; align-items:center; gap:12px; margin-bottom:20px; flex-wrap:wrap; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:14px 18px; }
+.filter-label { font-size:12px; color:var(--text-muted); font-weight:500; }
+.filter-tabs { display:flex; gap:4px; flex:1; flex-wrap:wrap; }
+.filter-tab { padding:5px 14px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--text-muted); font-size:12px; cursor:pointer; text-decoration:none; white-space:nowrap; transition:all 0.15s; }
+.filter-tab:hover { border-color:var(--text-muted); color:var(--text); }
+.filter-tab.active { background:var(--accent-red); border-color:var(--accent-red); color:white; }
+.search-box { display:flex; align-items:center; gap:8px; background:rgba(255,255,255,0.04); border:1px solid var(--border); border-radius:8px; padding:6px 12px; width:220px; }
+.search-box input { background:none; border:none; outline:none; color:var(--text); font-size:13px; width:100%; }
+.search-icon { color:var(--text-muted); font-size:14px; }
+
+.notif-list { display:flex; flex-direction:column; gap:10px; }
+.notif-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:16px 20px; display:flex; align-items:flex-start; gap:14px; position:relative; transition:all 0.18s; }
+.notif-card:hover { border-color:var(--text-muted); }
+.notif-card.unread { border-left:3px solid var(--accent-red); padding-left:17px; background:rgba(255,71,87,0.03); }
+.notif-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
+.notif-icon.red { background:rgba(255,71,87,0.14); }
+.notif-icon.blue { background:rgba(58,123,213,0.14); }
+.notif-icon.gold { background:rgba(245,166,35,0.14); }
+.notif-icon.orange { background:rgba(255,107,53,0.14); }
+.notif-icon.green { background:rgba(46,213,115,0.14); }
+.notif-icon.purple { background:rgba(156,136,255,0.14); }
+.notif-body { flex:1; min-width:0; }
+.notif-header { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+.notif-title { font-weight:500; font-size:13.5px; color:var(--text); flex:1; }
+.notif-badge { font-size:10px; font-weight:600; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+.badge-emergency { background:rgba(255,71,87,0.2); color:#ff4757; }
+.badge-booking { background:rgba(58,123,213,0.2); color:#3a7bd5; }
+.badge-payment { background:rgba(245,166,35,0.2); color:#f5a623; }
+.badge-driver { background:rgba(255,107,53,0.2); color:#ff6b35; }
+.badge-schedule { background:rgba(46,213,115,0.2); color:#2ed573; }
+.badge-system { background:rgba(156,136,255,0.2); color:#9c88ff; }
+.notif-desc { font-size:12.5px; color:var(--text-muted); line-height:1.5; margin-bottom:8px; }
+.notif-meta { display:flex; align-items:center; gap:14px; }
+.notif-time { font-size:11px; color:var(--text-dim); }
+.notif-user { font-size:11px; color:var(--text-dim); }
+.unread-dot { width:7px; height:7px; background:var(--accent-red); border-radius:50%; position:absolute; top:16px; right:16px; }
+
+.badge { display:inline-block; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-green { background:rgba(46,213,115,0.12); color:#2ed573; }
+.badge-gold { background:rgba(245,166,35,0.12); color:#f5a623; }
+.badge-red { background:rgba(255,71,87,0.12); color:#ff4757; }
+
+@media (max-width:768px) { .two-col { grid-template-columns:1fr; } .stats-grid { grid-template-columns:repeat(2,1fr); } }
+</style>
+
+<script>
+function searchNotifs() {
+    var query = document.getElementById('searchInput').value.trim();
+    var currentType = '{{ filter_type }}';
+    var url = window.location.pathname + '?';
+    if (currentType && currentType !== 'all') url += 'type=' + currentType + '&';
+    if (query) url += 'search=' + encodeURIComponent(query);
+    window.location.href = url;
+}
+</script>
+
+{% endblock %}

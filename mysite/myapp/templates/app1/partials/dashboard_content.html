@@ -1,0 +1,530 @@
+{% load static %}
+
+<!-- Stats Cards -->
+<div class="stats-grid">
+  <div class="stat-card">
+    <div class="stat-icon cyan">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+    <div>
+      <span class="stat-label">Total Trips</span>
+      <div class="stat-value">{{ total_bookings }}</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/>
+      </svg>
+    </div>
+    <div>
+      <span class="stat-label">Total Spent</span>
+      <div class="stat-value">৳{{ total_spent|floatformat:0 }}</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon amber">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+    <div>
+      <span class="stat-label">Pass Status</span>
+      <div class="stat-value">{{ pass_status }}</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon red">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/>
+      </svg>
+    </div>
+    <div>
+      <span class="stat-label">Next Payment</span>
+      <div class="stat-value">{{ next_payment }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions Grid - WITH TRACK BUS CARD -->
+<div class="actions-grid">
+  <a href="{% url 'schedule' %}" class="action-card">
+    <div class="action-icon red">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    </div>
+    <span class="action-label">Book a Seat</span>
+  </a>
+
+  <!-- ✅ NEW: Track Bus Action Card -->
+  <a href="{% url 'track_bus' %}" class="action-card">
+    <div class="action-icon cyan">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9L18 10l-2-6H8l-2 6-2.5.1C2.7 10.3 2 11.1 2 12v3c0 .6.4 1 1 1h2"/>
+        <circle cx="7" cy="17" r="2"/>
+        <circle cx="17" cy="17" r="2"/>
+      </svg>
+    </div>
+    <span class="action-label">Track Bus</span>
+  </a>
+
+  <a href="{% url 'my_bookings' %}" class="action-card">
+    <div class="action-icon green">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+      </svg>
+    </div>
+    <span class="action-label">My Bookings</span>
+  </a>
+
+  <a href="{% url 'profile' %}" class="action-card">
+    <div class="action-icon amber">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+      </svg>
+    </div>
+    <span class="action-label">Profile</span>
+  </a>
+</div>
+
+<!-- Upcoming Trips Section - Shows Bus Information -->
+<div class="card">
+  <div class="card-title">
+    🚌 Upcoming Trips
+    <span class="badge">{{ upcoming_bookings|length }} trips</span>
+  </div>
+
+  {% if upcoming_bookings %}
+    {% for booking in upcoming_bookings %}
+    <div class="trip-card">
+      <div class="trip-header">
+        <div class="trip-route">
+          <strong>{{ booking.schedule.route.code }}</strong>
+          {{ booking.schedule.route.start }} → {{ booking.schedule.route.end }}
+        </div>
+        <div class="trip-status confirmed">✓ Confirmed</div>
+      </div>
+
+      <div class="trip-details">
+        <div class="trip-detail">
+          <span class="detail-icon">📅</span>
+          <span>{{ booking.schedule.travel_date|date:"l, F d, Y" }}</span>
+        </div>
+        <div class="trip-detail">
+          <span class="detail-icon">⏰</span>
+          <span>{{ booking.schedule.departure_time|time:"g:i A" }}</span>
+        </div>
+        <div class="trip-detail">
+          <span class="detail-icon">🚏</span>
+          <span>Gate {{ forloop.counter }}</span>
+        </div>
+      </div>
+
+      <!-- BUS INFORMATION SECTION - This shows the bus added by admin -->
+      <div class="bus-info-card">
+        <div class="bus-header">
+          <span class="bus-icon">🚌</span>
+          <span class="bus-title">Bus Details</span>
+        </div>
+        <div class="bus-details-grid">
+          <div class="bus-detail">
+            <span class="detail-label">Bus Number:</span>
+            <span class="detail-value">{{ booking.schedule.bus.bus_number }}</span>
+          </div>
+          <div class="bus-detail">
+            <span class="detail-label">Driver:</span>
+            <span class="detail-value">{{ booking.schedule.bus.driver_name|default:"To be assigned" }}</span>
+          </div>
+          <div class="bus-detail">
+            <span class="detail-label">Capacity:</span>
+            <span class="detail-value">{{ booking.schedule.bus.capacity }} seats</span>
+          </div>
+          <div class="bus-detail">
+            <span class="detail-label">Amenities:</span>
+            <span class="detail-value">
+              {% if booking.schedule.bus.has_ac %}❄️ AC{% endif %}
+              {% if booking.schedule.bus.has_wifi %}📶 WiFi{% endif %}
+              {% if not booking.schedule.bus.has_ac and not booking.schedule.bus.has_wifi %}Standard Bus{% endif %}
+            </span>
+          </div>
+          <div class="bus-detail">
+            <span class="detail-label">Your Seats:</span>
+            <span class="detail-value">{{ booking.seat_number|default:"A" }}</span>
+          </div>
+          <div class="bus-detail">
+            <span class="detail-label">Amount:</span>
+            <span class="detail-value price">৳{{ booking.amount }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="trip-actions">
+        <a href="{% url 'booking_detail' booking.booking_id %}" class="btn-view-details">View Details →</a>
+        <button onclick="cancelBooking('{{ booking.booking_id }}')" class="btn-cancel-booking">Cancel</button>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">🚌</div>
+      <h4>No Upcoming Trips</h4>
+      <p>You don't have any upcoming bus trips. Book your first ride now!</p>
+      <a href="{% url 'schedule' %}" class="btn-book-now">Browse Schedules →</a>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Recent Past Trips -->
+{% if past_bookings %}
+<div class="card">
+  <div class="card-title">Recent Past Trips</div>
+  <div class="past-trips-list">
+    {% for booking in past_bookings %}
+    <div class="past-trip-item">
+      <div class="past-trip-route">{{ booking.schedule.route.code }}</div>
+      <div class="past-trip-date">{{ booking.schedule.travel_date|date:"M d, Y" }}</div>
+      <div class="past-trip-bus">🚌 {{ booking.schedule.bus.bus_number }}</div>
+      <div class="past-trip-amount">৳{{ booking.amount }}</div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<style>
+/* Dashboard specific styles */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-icon.cyan { background: rgba(0,180,216,.08); color: #00b4d8; }
+.stat-icon.green { background: rgba(43,147,72,.08); color: #2b9348; }
+.stat-icon.amber { background: rgba(244,162,97,.08); color: #f4a261; }
+.stat-icon.red { background: rgba(230,57,70,.08); color: #e63946; }
+
+.stat-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.stat-value {
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.card-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.badge {
+  background: var(--accent-red);
+  color: white;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.trip-card {
+  background: rgba(255,255,255,0.03);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+}
+
+.trip-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.trip-route {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.trip-status.confirmed {
+  color: #00c896;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: rgba(0,200,150,0.1);
+}
+
+.trip-details {
+  display: flex;
+  gap: 24px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid var(--border);
+}
+
+.trip-detail {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.detail-icon {
+  font-size: 16px;
+}
+
+/* Bus Information Card */
+.bus-info-card {
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+  padding: 15px;
+  margin-bottom: 15px;
+}
+
+.bus-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.bus-icon {
+  font-size: 20px;
+}
+
+.bus-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent-red);
+}
+
+.bus-details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+}
+
+.bus-detail {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.detail-label {
+  color: var(--text-muted);
+}
+
+.detail-value {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.detail-value.price {
+  color: var(--accent-red);
+  font-weight: 600;
+}
+
+.trip-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.btn-view-details {
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-primary);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.btn-view-details:hover {
+  border-color: var(--accent-red);
+  color: var(--accent-red);
+}
+
+.btn-cancel-booking {
+  padding: 8px 16px;
+  background: rgba(255,71,87,0.1);
+  border: 1px solid var(--accent-red);
+  border-radius: 8px;
+  color: var(--accent-red);
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.btn-cancel-booking:hover {
+  background: rgba(255,71,87,0.2);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+}
+
+.empty-state h4 {
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.btn-book-now {
+  display: inline-block;
+  padding: 10px 24px;
+  background: var(--accent-red);
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  transition: all 0.2s;
+}
+
+.btn-book-now:hover {
+  transform: translateY(-2px);
+}
+
+.past-trips-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.past-trip-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: rgba(255,255,255,0.02);
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.past-trip-route {
+  font-weight: 600;
+  min-width: 60px;
+}
+
+.past-trip-date {
+  color: var(--text-muted);
+  min-width: 100px;
+}
+
+.past-trip-bus {
+  min-width: 100px;
+}
+
+.past-trip-amount {
+  color: var(--accent-red);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .bus-details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .past-trip-item {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+}
+</style>
+
+<script>
+function cancelBooking(bookingId) {
+  if (confirm('Are you sure you want to cancel this booking?')) {
+    fetch(`/cancel-booking/${bookingId}/`, {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        showToast(data.message);
+        setTimeout(() => location.reload(), 1500);
+      } else {
+        showToast(data.error, true);
+      }
+    });
+  }
+}
+
+function getCookie(name) {
+  let cookieValue = null;
+  if (document.cookie && document.cookie !== '') {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+      const cookie = cookies[i].trim();
+      if (cookie.substring(0, name.length + 1) === (name + '=')) {
+        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+        break;
+      }
+    }
+  }
+  return cookieValue;
+}
+</script>
