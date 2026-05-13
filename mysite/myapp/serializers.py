@@ -2,24 +2,26 @@
 from rest_framework import serializers
 from .models import Bus, BusLocation
 
+
 class BusSerializer(serializers.ModelSerializer):
     """
     Serializer for Bus model - CHANGE REASON: Convert Bus objects to JSON for API responses
-    Defines which fields to include in API responses for bus data
+    Defines which fields to include in API responses for bus data.
+    NOTE: Removed non-existent current_lat/current_lng fields (bug fix).
     """
     class Meta:
         model = Bus
-        fields = ['id', 'bus_number', 'capacity', 'has_ac', 'current_lat', 'current_lng']
+        fields = ['id', 'bus_number', 'capacity', 'has_ac', 'is_active']
 
 
 class BusLocationSerializer(serializers.ModelSerializer):
     """
     Serializer for BusLocation model - CHANGE REASON: Convert location data to JSON for tracking API
-    Includes related bus number for frontend display convenience
+    Includes related bus number from related Bus model for frontend display convenience.
     """
     # Read-only field to include bus number from related Bus model
     bus_number = serializers.CharField(source='bus.bus_number', read_only=True)
-    
+
     class Meta:
         model = BusLocation
         fields = ['id', 'bus', 'bus_number', 'latitude', 'longitude', 'updated_at']

@@ -698,19 +698,38 @@ def get_bus_location(request, bus_id):
 
 @api_view(['GET'])
 def get_all_buses_location(request):
-    """API endpoint to retrieve all bus locations for map display"""
-    buses = Bus.objects.all()
-    data = []
+    """
+    API endpoint to retrieve all active bus locations for live map display.
+    CHANGE REASON: Enhanced to return driver_name, route_code, and ISO last_updated
+    timestamp needed by live_tracking.js for popups and offline detection.
+    Risk: Very Low — GET only, no writes, same URL, same method.
+    """
+    buses = Bus.objects.filter(is_active=True).prefetch_related('locations', 'assigned_drivers')
+    bus_data = []
     for bus in buses:
-        latest_location = BusLocation.objects.filter(bus=bus).first()
-        data.append({
+        # Get the most recent location record
+        latest_location = bus.locations.first()  # ordered by -updated_at via Meta
+
+        # Try to get route info from the assigned driver (if any)
+        route_code = 'N/A'
+        try:
+            driver = bus.assigned_drivers.filter(is_active=True).first()
+            if driver and driver.assigned_route:
+                route_code = driver.assigned_route.code
+        except Exception:
+            pass
+
+        bus_data.append({
             'id': bus.id,
             'bus_number': bus.bus_number,
             'latitude': latest_location.latitude if latest_location else None,
             'longitude': latest_location.longitude if latest_location else None,
-            'updated_at': latest_location.updated_at.strftime('%H:%M:%S') if latest_location else None,
+            'driver_name': bus.driver_name or 'Unassigned',
+            'route_code': route_code,
+            # Full ISO 8601 timestamp for accurate offline detection (> 30s check in JS)
+            'last_updated': latest_location.updated_at.isoformat() if latest_location else None,
         })
-    return Response(data)
+    return Response({'success': True, 'buses': bus_data})
 
 @login_required
 def track_bus_api(request):
