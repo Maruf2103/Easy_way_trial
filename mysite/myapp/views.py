@@ -665,8 +665,15 @@ from rest_framework.response import Response
 from .serializers import BusSerializer, BusLocationSerializer
 from .models import Bus, BusLocation
 
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
+
+@csrf_exempt
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def update_bus_location(request, bus_id):
+
     """API endpoint to update bus GPS location - CHANGE REASON: Real-time tracking support"""
     try:
         bus = Bus.objects.get(id=bus_id)
