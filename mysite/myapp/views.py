@@ -172,7 +172,9 @@ def login_user(request):
         redirect_url = '/dashboard/'
         
         try:
-            if hasattr(user, 'profile'):
+            if user.is_superuser or user.is_staff:
+                redirect_url = '/admin/'
+            elif hasattr(user, 'profile'):
                 user_type = user.profile.user_type.lower()
                 if user_type == 'driver':
                     redirect_url = '/driver/dashboard/'
@@ -183,7 +185,11 @@ def login_user(request):
             elif hasattr(user, 'driver_profile') and user.driver_profile.is_active:
                 redirect_url = '/driver/dashboard/'
         except Exception:
-            redirect_url = '/dashboard/'
+            if user.is_superuser or user.is_staff:
+                redirect_url = '/admin/'
+            else:
+                redirect_url = '/dashboard/'
+
         
         full_name = user.get_full_name() or user.username
         msg = f'Welcome back Admin, {full_name}!' if 'admin' in redirect_url else f'Welcome back, {full_name}!'
