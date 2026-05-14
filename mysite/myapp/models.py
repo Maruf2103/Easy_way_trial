@@ -381,18 +381,3 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"[{self.get_type_display()}] {self.title} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
-
-class BusLocation(models.Model):
-    """
-    Real-time tracking coordinates for a bus.
-    """
-    bus = models.ForeignKey(Bus, on_delete=models.CASCADE, related_name='locations')
-    latitude = models.FloatField()
-    longitude = models.FloatField()
-    updated_at = models.DateTimeField(auto_now=True)
-
-    class Meta:
-        ordering = ['-updated_at']
-
-    def __str__(self):
-        return f"{self.bus.bus_number} - {self.latitude}, {self.longitude}"
