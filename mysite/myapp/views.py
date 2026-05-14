@@ -69,6 +69,9 @@ def account_created_page(request):
     """Render the account creation success page template"""
     return render(request, 'app1/account_created.html')
 
+from django.views.decorators.csrf import csrf_exempt
+
+@csrf_exempt
 @require_http_methods(["POST"])
 def register_user(request):
     """
@@ -140,6 +143,7 @@ def register_user(request):
         print(f"Registration error: {str(e)}")
         return JsonResponse({'success': False, 'message': f'Registration failed: {str(e)}'}, status=500)
 
+@csrf_exempt
 @require_http_methods(["POST"])
 def login_user(request):
     """

@@ -16,6 +16,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = ['https://maruf2103112.pythonanywhere.com']
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
