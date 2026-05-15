@@ -685,16 +685,27 @@ from rest_framework.permissions import AllowAny
 def update_bus_location(request, bus_id):
 
     """API endpoint to update bus GPS location - CHANGE REASON: Real-time tracking support"""
+    print(f"DEBUG: Received location update for bus_id {bus_id}")
+    print(f"DEBUG: Data: {request.data}")
+    
     try:
         bus = Bus.objects.get(id=bus_id)
         lat = request.data.get('lat') or request.data.get('latitude')
         lng = request.data.get('lng') or request.data.get('longitude')
+        
         if lat is None or lng is None:
+            print(f"DEBUG: Missing coordinates for bus {bus_id}")
             return Response({"error": "Latitude and longitude required"}, status=400)
+            
         BusLocation.objects.create(bus=bus, latitude=lat, longitude=lng)
+        print(f"DEBUG: Successfully updated location for bus {bus_id} at {lat}, {lng}")
         return Response({"message": "Location updated", "bus_id": bus_id, "lat": lat, "lng": lng})
     except Bus.DoesNotExist:
+        print(f"DEBUG: Bus {bus_id} not found in database")
         return Response({"error": "Bus not found"}, status=404)
+    except Exception as e:
+        print(f"DEBUG: Unexpected error in update_bus_location: {str(e)}")
+        return Response({"error": str(e)}, status=500)
 
 @api_view(['GET'])
 def get_bus_location(request, bus_id):

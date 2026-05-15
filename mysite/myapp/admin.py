@@ -1,7 +1,13 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User
-from .models import UserProfile, Bus, Route, Schedule, Booking
+from .models import UserProfile, Bus, Route, Schedule, Booking, BusLocation
+
+@admin.register(BusLocation)
+class BusLocationAdmin(admin.ModelAdmin):
+    list_display = ('bus', 'latitude', 'longitude', 'updated_at')
+    list_filter = ('bus', 'updated_at')
+    readonly_fields = ('updated_at',)
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
